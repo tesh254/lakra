@@ -3,7 +3,7 @@ Simple game engine built with Golang
 
 ## Preview
 
-![game preview]('preview.png')
+![](preview.png)
 
 ## Game Engine Info
 
