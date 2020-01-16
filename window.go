@@ -1,4 +1,4 @@
-package spritengine
+package engine
 
 import (
 	"image"
@@ -13,6 +13,7 @@ import (
 	"golang.org/x/mobile/event/paint"
 )
 
+
 // createWindow creates a window and provides a corresponding image that can be drawn on
 func createWindow(game *Game) {
 
@@ -24,23 +25,25 @@ func createWindow(game *Game) {
 
 		res := image.Pt(game.Width*game.ScaleFactor, game.Height*game.ScaleFactor)
 		win, _ := src.NewWindow(&screen.NewWindowOptions{Width: res.X, Height: res.Y, Title: game.Title})
-		buf, _ := src.NewBuffer()
+		buf, _ := src.NewBuffer(res)
 
 		for {
+
 			switch event := win.NextEvent().(type) {
 
-			// Close window
-		case lifescycle.Event:
-			if event.To == lifescycle.StageDead {
-				return
-			}
+			// Close the window
+			case lifecycle.Event:
 
-				// Close window
+				if event.To == lifecycle.StageDead {
+					return
+				}
+
+				// Window repaints
 			case paint.Event:
 
 				frameAgeNano := (time.Now().UnixNano() - lastPaintTimeNano)
 
-				// Throttle the desired FPS
+				// Throttle to the desired FPS
 				if frameAgeNano < targetFrameAgeNano {
 					time.Sleep(time.Duration(targetFrameAgeNano-frameAgeNano) * time.Nanosecond)
 					frameAgeNano = targetFrameAgeNano
@@ -53,11 +56,10 @@ func createWindow(game *Game) {
 				}
 
 				frameAgeSeconds := (float64(frameAgeNano) / float64(1000000000))
-
 				currentFrameRate := 1 / frameAgeSeconds
 
 				// Repaint the stage
-				lastPaintTimeNano := time.Now().UnixNano()
+				lastPaintTimeNano = time.Now().UnixNano()
 				stage := image.NewRGBA(image.Rect(0, 0, game.Width, game.Height))
 
 				game.CurrentLevel().BeforePaint(game.CurrentLevel())
@@ -69,13 +71,11 @@ func createWindow(game *Game) {
 
 				win.Send(paint.Event{})
 
-				// Key Presses
-
-			case key.Event {
+				// Key presses
+			case key.Event:
 				game.BroadcastInput(event)
 			}
 
-			}
 		}
 
 	})

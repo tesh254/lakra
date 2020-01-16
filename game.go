@@ -1,25 +1,23 @@
-package spritengine
+package engine
 
-import (
-	"golang.org/x/mobile/event/key"
-)
+import "golang.org/x/mobile/event/key"
 
 // Game is a struct that defines a game and the window that contains it
 type Game struct {
-	Title           string
-	Width           int
-	Height          int
-	ScaleFactor     int
+	Title string
+	Width int
+	Height int
+	ScaleFactor int
 	TargetFrameRate int
-	FramePainter    FramePainter
-	KeyListener     KeyListener
-	Levels          []*Levels
-	CurrentLevelID  int
-	CurrentFrame    int
+	FramePainter FramePainter
+	KeyListener KeyListener
+	Levels []*Level
+	CurrentLevelID int
+	CurrentFrame int
 }
 
-// CreateGame sets up a game and a window
-func CreateGame(title string, width int, height int, scaleFactor int, targetFrameRate int, framePainter FramePainter, keyListener KeyListener, levels []*Levels) *Game {
+// CreateGame sets up a game and its window
+func CreateGame(title string, width int, height int, scaleFactor int, targetFrameRate int, framePainter FramePainter, keyListener KeyListener, levels []*Level) *Game {
 
 	game := Game{
 		Title:           title,
@@ -41,14 +39,16 @@ func CreateGame(title string, width int, height int, scaleFactor int, targetFram
 	createWindow(&game)
 
 	return &game
+
 }
+
 
 // CurrentLevel gets the current level object
 func (game *Game) CurrentLevel() *Level {
 	return game.Levels[game.CurrentLevelID]
 }
 
-// BroadcastInput sends the game input to the current level's objects if they are controllable
+// BroadCastInput sends the game input to the current level's object if they are controllable
 func (game *Game) BroadcastInput(event key.Event) {
 
 	for _, gameObject := range game.CurrentLevel().GameObjects {
@@ -56,6 +56,5 @@ func (game *Game) BroadcastInput(event key.Event) {
 		if gameObject.IsControllable == true {
 			game.KeyListener(event, gameObject)
 		}
-
 	}
 }

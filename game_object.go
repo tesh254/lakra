@@ -1,22 +1,22 @@
-package spritengine
+package engine
 
-// GameObject represents a sprite and its properties
+// GameObject represented a sprite and its properties
 type GameObject struct {
-	CurrentState     string
-	States           GameObjectStates
-	Position         Vector
-	Mass             float64
-	Velocity         Vector
-	Direction        int
-	IsFlipped        bool
-	IsControllable   bool
-	IsFloor          bool
-	IsInteractive    bool
-	IsHidden         bool
-	Level            *Level
-	DynamicData      DynamicData
-	FloorY           float64
-	EventHandler     EventHandler
+	CurrentState string
+	States GameObjectStates
+	Position Vector
+	Mass float64
+	Velocity Vector
+	Direction int
+	IsFlipped bool
+	IsControllable bool
+	IsFloor bool
+	IsInteractive bool
+	IsHidden bool
+	Level *Level
+	DynamicData DynamicData
+	FloorY float64
+	EventHandler EventHandler
 	CollisionHandler CollisionHandler
 }
 
@@ -30,7 +30,6 @@ func (gameObject *GameObject) IsResting() bool {
 	}
 
 	return int(gameObject.Position.Y) == int(gameObject.FloorY)
-
 }
 
 // CurrentSprite gets the current sprite for the object's state
@@ -40,17 +39,17 @@ func (gameObject *GameObject) CurrentSprite() SpriteInterface {
 	sprite := gameObject.getCurrentSpriteFrame(spriteSeries)
 
 	return sprite
-
 }
 
 // getCurrentSpriteFrame gets the appropriate frame of a sprite series based on the
 // game's frame ticker
 func (gameObject *GameObject) getCurrentSpriteFrame(spriteSeries SpriteSeries) SpriteInterface {
 
+	// if we dont have a level
 	if gameObject.Level != nil {
 
 		game := gameObject.Level.Game
-		framesPerSprite := (game.TargetFrameRate / spriteSeries.CyclesPerSecond) / len(spriteSeries.Sprites)
+		framePerSprite :=  (game.TargetFrameRate / spriteSeries.CyclesPerSecond) / len(spriteSeries.Sprites)
 		spriteCounter := 0
 		i := 0
 
@@ -58,7 +57,7 @@ func (gameObject *GameObject) getCurrentSpriteFrame(spriteSeries SpriteSeries) S
 
 			i++
 
-			if i == framesPerSprite {
+			if i == framePerSprite {
 				i = 0
 				spriteCounter++
 			}
@@ -70,37 +69,31 @@ func (gameObject *GameObject) getCurrentSpriteFrame(spriteSeries SpriteSeries) S
 			if j == game.CurrentFrame {
 				return spriteSeries.Sprites[spriteCounter]
 			}
-
 		}
-
 	}
-
 	return spriteSeries.Sprites[0]
-
 }
 
-// Width gets the width of the game object
+// Width gets width of the game object
 func (gameObject *GameObject) Width() int {
-
 	return gameObject.CurrentSprite().Width()
-
 }
 
-// Height gets the height of the game object
+// Height gets height of the game object
 func (gameObject *GameObject) Height() int {
-
 	return gameObject.CurrentSprite().Height()
-
 }
 
 // RecalculatePosition recalculates the latest X and Y position of the game
-// object from its properties
+//  object from its properties
 func (gameObject *GameObject) RecalculatePosition(gravity float64) {
 
 	// Move left or right
 	if gameObject.Direction == DirRight {
+		// Go right
 		gameObject.Position.X += gameObject.Velocity.X
 	} else if gameObject.Direction == DirLeft {
+		// Go left
 		gameObject.Position.X -= gameObject.Velocity.X
 	}
 
@@ -114,7 +107,7 @@ func (gameObject *GameObject) RecalculatePosition(gravity float64) {
 
 		// If actively falling down, emit the 'freefall' event
 		if gameObject.Position.Y > gameObject.FloorY && gameObject.Velocity.Y < 0 {
-			gameObject.EventHandler(EventFreefall, gameObject)
+			gameObject.EventHandler(EventFreeFall, gameObject)
 		}
 
 		// Ensure the floor object acts as a barrier
@@ -126,9 +119,7 @@ func (gameObject *GameObject) RecalculatePosition(gravity float64) {
 			if wasAboveFloor == true {
 				gameObject.EventHandler(EventFloorCollision, gameObject)
 			}
-
 		}
-
 	}
 
 	// Don't fall too far off-screen
@@ -143,11 +134,8 @@ func (gameObject *GameObject) RecalculatePosition(gravity float64) {
 			if gameObject.IsInteractive == true {
 				gameObject.EventHandler(EventDropOffLevel, gameObject)
 			}
-
 		}
-
 	}
-
 }
 
 // SetDynamicData sets a piece of dynamic game object data
@@ -158,18 +146,17 @@ func (gameObject *GameObject) SetDynamicData(key string, value interface{}) {
 }
 
 // GetDynamicData gets a piece of dynamic game object data, falling back to a
-// defined value if the data does not exist
+// define value if the data does not exist
 func (gameObject *GameObject) GetDynamicData(key string, fallback interface{}) interface{} {
-
+	
 	if value, ok := gameObject.DynamicData[key]; ok {
 		return value
 	}
 
 	return fallback
-
 }
 
-// HasDynamicData checks whether a piece of dynamic game object data exists
+// HasDynamicData checks whether a piece of dynamic data game object data exists
 func (gameObject *GameObject) HasDynamicData(key string) bool {
 
 	if _, ok := gameObject.DynamicData[key]; ok {
@@ -177,52 +164,49 @@ func (gameObject *GameObject) HasDynamicData(key string) bool {
 	}
 
 	return false
-
 }
 
-// ClearDynamicData clears a piece of dynamic game object data
+// ClearDynamicData clears a piece of specific dynamic game object data
 func (gameObject *GameObject) ClearDynamicData(key string) {
 
 	delete(gameObject.DynamicData, key)
 
 }
 
-// GetCollisionEdge infers the edge on which an intersecting object collided
+// GetCollisionEdge infers edge on which an intersecting object collided
 // with the game object
 func (gameObject *GameObject) GetCollisionEdge(collidingObject *GameObject) string {
 
-	// Where is the game object's outer edge in relation to the colliding
+	// where is the game object's outer edge in relation to the colliding
 	// object?
 	isLeft := gameObject.Position.X < collidingObject.Position.X
 	isRight := (gameObject.Position.X + float64(gameObject.Width())) > (collidingObject.Position.X + float64(collidingObject.Width()))
 	isBottom := gameObject.Position.Y < collidingObject.Position.Y
-	isTop := (gameObject.Position.Y + float64(gameObject.Height())) > (collidingObject.Position.Y + float64(collidingObject.Height()))
+	isTop := (gameObject.Position.Y +float64(gameObject.Height())) > (collidingObject.Position.Y + float64(collidingObject.Height()))
 
-	// If both objects are at rest a simple 'left' or 'right' can be assumed,
+	// If both objects are at the rest a simple 'left' or 'right' can be assumed
 	// regardless of the height of either object
-	if (gameObject.Mass == 0 || gameObject.IsResting() == true) &&
+	if (gameObject.Mass == 0 || gameObject.IsResting() == true) && 
 		(collidingObject.Mass == 0 || collidingObject.IsResting() == true) {
+			if isLeft == true {
+				return EdgeLeft
+			}
 
-		if isLeft == true {
-			return EdgeLeft
+			if isRight == true {
+				return EdgeRight
+			}
 		}
-
-		if isRight == true {
-			return EdgeRight
-		}
-
-	}
-
+	
 	// If there's any vertical movement, combination edges will make more sense
 	if isLeft == true && isTop == true {
 		return EdgeTopLeft
 	}
 
 	if isRight == true && isTop == true {
-		return EdgeTopRight
+		return  EdgeTopRight
 	}
 
-	if isLeft == true && isBottom == true {
+	if isLeft == true &&  isBottom == true {
 		return EdgeBottomLeft
 	}
 
@@ -233,6 +217,7 @@ func (gameObject *GameObject) GetCollisionEdge(collidingObject *GameObject) stri
 	// Failing the above, it may be the case that the game object is smaller
 	// than the colliding object, and therefore fits nicely within one of the
 	// regular edges
+
 	if isLeft {
 		return EdgeLeft
 	}
@@ -241,16 +226,15 @@ func (gameObject *GameObject) GetCollisionEdge(collidingObject *GameObject) stri
 		return EdgeRight
 	}
 
-	if isBottom {
-		return EdgeBottom
-	}
-
 	if isTop {
 		return EdgeTop
 	}
 
-	// Should never reach here unless the game object is wholly within the
+	if isBottom {
+		return EdgeBottom
+	}
+
+	// Should never reach here unless the game object the wholly withing the
 	// colliding object
 	return EdgeNone
-
 }
