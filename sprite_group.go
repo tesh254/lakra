@@ -1,5 +1,4 @@
-package spritengine
-
+package engine
 import (
 	"errors"
 	"image"
@@ -13,7 +12,7 @@ type SpriteGroup struct {
 	Sprites *[]*Sprite
 }
 
-// AddtoCanvas draws the sprite group on an existing image canvas
+// AddToCanvas draws the sprite group on an existing image canvas
 func (spriteGroup *SpriteGroup) AddToCanvas(canvas *image.RGBA, targetX int, targetY int, mirrorImage bool) {
 	spriteCount := 0
 	canvasDraw := func(x int, y int) {
@@ -23,7 +22,7 @@ func (spriteGroup *SpriteGroup) AddToCanvas(canvas *image.RGBA, targetX int, tar
 	}
 
 	for y := 0; y < spriteGroup.GroupHeight; y++ {
-		if mirrotImage == true {
+		if mirrorImage == true {
 
 			for x := (spriteGroup.GroupWidth - 1); x >= 0; x-- {
 				canvasDraw(x, y)
@@ -42,8 +41,8 @@ func (spriteGroup *SpriteGroup) AddToCanvas(canvas *image.RGBA, targetX int, tar
 // CreateSpriteGroup creates a sprite group based on a grid size and collection of sprites
 func CreateSpriteGroup(width int, height int, sprites *[]*Sprite) (*SpriteGroup, error) {
 	
-	if len(*sprites) != (width, height) {
-		return nil, errors.New("Sprite group requires ", + strconv.Itoa(width*height) + " sprites, not" + strconv.Itoa(len(*sprites)))
+	if len(*sprites) != (width * height) {
+		return nil, errors.New("Sprite group requires " + strconv.Itoa(width*height) + " sprites, not" + strconv.Itoa(len(*sprites)))
 	}
 
 	return &SpriteGroup{

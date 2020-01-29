@@ -1,9 +1,9 @@
-package spritengine
+package engine
 
 import (
 	"image"
 	"image/color"
-	_ "image/png" // Import for the side-effect of registering PNG library
+	_ "image/png"
 	"io/ioutil"
 	"log"
 	"math"
@@ -14,7 +14,6 @@ import (
 
 // GenerateFromPNGFile generates a SpriteGroup package file from an image on disk
 func GenerateFromPNGFile(inputFile string, outputFile string, packageName string, exportedSpriteName string, palettes ...Palette) {
-
 	imgFile, imgFileErr := os.Open(inputFile)
 	imgFileConfig, imgFileConfErr := os.Open(inputFile)
 
@@ -38,7 +37,7 @@ func GenerateFromPNGFile(inputFile string, outputFile string, packageName string
 
 	palette := Palette{}
 
-	// If a palette has been provided, use that
+	// If a pallete has been provided use that
 	if len(palettes) > 0 {
 
 		palette = palettes[0]
@@ -56,7 +55,6 @@ func GenerateFromPNGFile(inputFile string, outputFile string, packageName string
 				tempPalette[colourString] = colourRGBA
 
 			}
-
 		}
 
 		if len(tempPalette) > 16 {
@@ -70,10 +68,9 @@ func GenerateFromPNGFile(inputFile string, outputFile string, packageName string
 			palette[paletteSlots[slotCount]] = colour
 			slotCount++
 		}
-
 	}
 
-	// Get the palette slots for each pixel
+	// Get palette slot for each pixel
 	sprites := map[string][]string{}
 
 	for y := 0; y < config.Height; y++ {
@@ -104,7 +101,7 @@ func GenerateFromPNGFile(inputFile string, outputFile string, packageName string
 
 	// Palette
 	paletteName := "palette_" + exportedSpriteName
-	paletteString := "var " + paletteName + " = &spritengine.Palette{"
+	paletteString := "var " + paletteName + " = &engine.Palette{"
 
 	for paletteSlot, colour := range palette {
 		paletteString += `"` + paletteSlot + `": color.RGBA{` + strconv.Itoa(int(colour.R)) + `,` + strconv.Itoa(int(colour.G)) + `,` + strconv.Itoa(int(colour.B)) + `,` + strconv.Itoa(int(colour.A)) + `},`
@@ -118,7 +115,7 @@ func GenerateFromPNGFile(inputFile string, outputFile string, packageName string
 		for x := 0; x < (config.Width / 16); x++ {
 
 			spriteName := "sprite_" + exportedSpriteName + "_" + strconv.Itoa(x) + "_" + strconv.Itoa(y)
-			spriteString := "var " + spriteName + ", _ = spritengine.CreateSprite(" + paletteName + ", []int{"
+			spriteString := "var " + spriteName + ", _ = engine.CreateSprite(" + paletteName + ", []int{"
 			spriteNames = append(spriteNames, spriteName)
 
 			for i, paletteSlot := range sprites[strconv.Itoa(x)+","+strconv.Itoa(y)] {
@@ -132,33 +129,29 @@ func GenerateFromPNGFile(inputFile string, outputFile string, packageName string
 				if (i % 8) == 7 {
 					spriteString += ","
 				}
-
 			}
 
-			spriteString += "})"
-
+			spriteString += "}}"
 			spriteStrings = append(spriteStrings, spriteString)
 
 		}
-
 	}
 
 	fileContents := `package ` + packageName + `
-import (
-	"image/color"
-	"github.com/D-L-M/spritengine"
-)
-` + paletteString + `
-` + strings.Join(spriteStrings, "\n") + `
-var ` + exportedSpriteName + `, _ = spritengine.CreateSpriteGroup(` + strconv.Itoa(config.Width/16) + `, ` + strconv.Itoa(config.Height/16) + `, &[]*spritengine.Sprite{` + strings.Join(spriteNames, ",") + `})`
+	import (
+		"image/color"
+		"github.com/tesh254/lakra/engine"
+	)
+	` + paletteString + `
+	` + strings.Join(spriteStrings, "\n") +`
+	var ` + exportedSpriteName + `, _ = engine.CreateSpriteGroup(` + strconv.Itoa(config.Width/16) + `, ` + strconv.Itoa(config.Height/16) + `, &[]*engine.Sprite{` + strings.Join(spriteNames, ",") + `}}`
 
 	// Write the output file to disk
 	err := ioutil.WriteFile(outputFile, []byte(fileContents), 0644)
 
 	if err != nil {
-		log.Fatal("Error writing to ourput file")
+		log.Fatal("Error writing to output file")
 	}
-
 }
 
 // getColourStringAndRGBA converts a color.Color object to its string and color.RGBA representations
@@ -169,5 +162,4 @@ func getColourStringAndRGBA(colour color.Color) (string, color.RGBA) {
 	colourRGBA := color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)}
 
 	return colourString, colourRGBA
-
 }

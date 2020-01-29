@@ -1,4 +1,4 @@
-package spritengine
+package engine
 
 import (
 	"image"
@@ -16,7 +16,7 @@ type Level struct {
 	BeforePaint      BeforePaint
 }
 
-// Repaint redraws the entire level for a new frame
+// Repaint redraws the entire level for a new game
 func (level *Level) Repaint(stage *image.RGBA) {
 
 	// Figure out where all the floor objects are
@@ -25,18 +25,18 @@ func (level *Level) Repaint(stage *image.RGBA) {
 	// Figure out which objects are colliding
 	level.CalculateCollisions()
 
-	// Paint the background colour
+	// Paint the background color
 	draw.Draw(stage, stage.Bounds(), &image.Uniform{level.BackgroundColour}, image.ZP, draw.Src)
 
 	// Update each game object
 	for _, gameObject := range level.GameObjects {
-
 		// Skip hidden objects
 		if gameObject.IsHidden == true {
 			continue
 		}
 
 		gameObject.Level = level
+
 		gameObject.RecalculatePosition(level.Gravity)
 
 		if gameObject.Direction == DirLeft {
@@ -51,9 +51,7 @@ func (level *Level) Repaint(stage *image.RGBA) {
 		paintX := int(gameObject.Position.X) - int(level.PaintOffset.X)
 
 		gameObject.CurrentSprite().AddToCanvas(stage, paintX, paintY, gameObject.IsFlipped)
-
 	}
-
 }
 
 // AssignFloors iterates through all objects in the level and defines which
@@ -122,16 +120,16 @@ func (level *Level) AssignFloors() {
 
 }
 
-// CalculateCollisions iterates through all objects in the level and defines which
+// CalculateCollisions iterates via all objects in the level and defines which
 // objects (if any) intersect them
 func (level *Level) CalculateCollisions() {
 
 	xCoords := map[int][]*GameObject{}
 
-	// Make a map of each object's possible X positions
+	// Make a map of each object's possible x positions
 	for _, gameObject := range level.GameObjects {
 
-		// Skip hidden and non-interactive objects
+		// Skip hidden of each object's possible X positions
 		if gameObject.IsHidden == true || gameObject.IsInteractive == false {
 			continue
 		}
@@ -140,15 +138,14 @@ func (level *Level) CalculateCollisions() {
 			xPos := i + int(gameObject.Position.X)
 			xCoords[xPos] = append(xCoords[xPos], gameObject)
 		}
-
 	}
 
-	// Find the objects that also intersect on the Y axis
+	// Find objects that also intersect on the Y axis
 	for _, gameObject := range level.GameObjects {
 
 		intersections := map[*GameObject]bool{}
-		gameObjectYMin := gameObject.Position.Y
-		gameObjectYMax := gameObjectYMin + float64(gameObject.Height())
+		gameObjectYmin := gameObject.Position.Y
+		gameObjectYmax := gameObjectYmin + float64(gameObject.Height())
 
 		for i := 0; i < gameObject.Width(); i++ {
 
@@ -171,17 +168,16 @@ func (level *Level) CalculateCollisions() {
 					intersectingObjectYMin := intersectingObject.Position.Y
 					intersectingObjectYMax := intersectingObjectYMin + float64(intersectingObject.Height())
 
-					if (gameObjectYMin >= intersectingObjectYMax || gameObjectYMax <= intersectingObjectYMin) == false {
+					if (gameObjectYmin >= intersectingObjectYMax || gameObjectYmax <= intersectingObjectYMin) == false {
 						intersections[intersectingObject] = true
 					}
-
 				}
 
 			}
 
 		}
 
-		// Let the game object know that there have been collisions
+		// Let the game know that there have been collisions
 		if len(intersections) > 0 {
 
 			for collidingObject := range intersections {
@@ -190,9 +186,7 @@ func (level *Level) CalculateCollisions() {
 					GameObject: collidingObject,
 					Edge:       gameObject.GetCollisionEdge(collidingObject),
 				})
-
 			}
-
 		}
 
 	}
